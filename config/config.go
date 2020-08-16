@@ -14,7 +14,7 @@ type Config struct {
 	Tags        string `envconfig:"tags" default:"Name=*"`
 	SSHUsername string `envconfig:"ssh_username" default:"ec2-user"`
 	SSHPort     string `envconfig:"ssh_port" default:"22"`
-	SSHOpts     string `envconfig:"ssh_opts" default:"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"`
+	SSHOpts     string `envconfig:"ssh_opts" default:"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"`
 }
 
 var appConfig Config
