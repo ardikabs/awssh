@@ -3,6 +3,7 @@ package ssh
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"fmt"
 
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -13,18 +14,17 @@ type KeyPair struct {
 	PublicKey  []byte
 }
 
-// NewKeyPair is a
+// NewKeyPair is a TODO:
 func NewKeyPair(keysize int) (keypair *KeyPair, err error) {
-	// TODO: aws.NewKeyPair proper docs
 	rsaKey, err := rsa.GenerateKey(rand.Reader, keysize)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to generate RSA key: (%v)", err)
 	}
 
 	publicKey, err := gossh.NewPublicKey(&rsaKey.PublicKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create ssh public key: (%v)", err)
 	}
 
 	publicKeySerialized := gossh.MarshalAuthorizedKey(publicKey)

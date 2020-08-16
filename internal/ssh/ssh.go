@@ -2,7 +2,6 @@ package ssh
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
 
@@ -16,15 +15,13 @@ type Session struct {
 	PublicKey string
 }
 
-// NewSession is
+// NewSession is TODO:
 func NewSession(instanceID string) (session *Session, err error) {
-	// TODO: ssh.NewSession proper docs
 	sshSocket := os.Getenv("SSH_AUTH_SOCK")
 	conn, err := net.Dial("unix", sshSocket)
 
 	if err != nil {
-		// TODO: SSH session log
-		log.Fatalf("failed to establish a connection to SSH_AUTH_SOCK: %v", err)
+		return nil, fmt.Errorf("Failed to establish a connection to SSH_AUTH_SOCK: (%v)", err)
 	}
 
 	agentClient := agent.NewClient(conn)
@@ -51,15 +48,13 @@ func NewSession(instanceID string) (session *Session, err error) {
 
 		err = agentClient.Add(tmpKey)
 		if err != nil {
-			// TODO: Temporary ssh key log
-			log.Println("unable to add ssh keypair to ssh agent")
-			return nil, err
+			return nil, fmt.Errorf("Unable to add ssh keypair to ssh agent: (%v)", err)
+
 		}
 
 		publicKey = string(keypair.PublicKey)
 	} else {
-		// use the first ssh-key registered in ssh-agent
-		// to be loaded
+		// use the first ssh-key registered in ssh-agent to be loaded
 		publicKey = fmt.Sprintf("%s", existKeys[0])
 	}
 

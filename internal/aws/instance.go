@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -28,9 +27,8 @@ type EC2Instance struct {
 	AvailabilityZone string
 }
 
-// NewEC2Instance is
+// NewEC2Instance is TODO:
 func NewEC2Instance(session *session.Session, instance *ec2.Instance) *EC2Instance {
-	// TODO: aws.NewEC2Instance proper docs
 	ec2InstanceName := getTagValue("Name", instance)
 
 	var publicIPAddr string
@@ -53,60 +51,61 @@ func NewEC2Instance(session *session.Session, instance *ec2.Instance) *EC2Instan
 
 func (e *EC2Instance) sendSSHPublicKey(publicKey string) (err error) {
 	appConfig := config.Get()
+	appLogger := config.LoadLogger()
 
 	svc := ec2instanceconnect.New(e.session)
 	input := &ec2instanceconnect.SendSSHPublicKeyInput{
 		InstanceId:       aws.String(e.InstanceID),
-		AvailabilityZone: aws.String(e.AvailabilityZone),
-		InstanceOSUser:   aws.String(appConfig.SSHUsername),
 		SSHPublicKey:     aws.String(publicKey),
+		InstanceOSUser:   aws.String(appConfig.SSHUsername),
+		AvailabilityZone: aws.String(e.AvailabilityZone),
 	}
+
+	appLogger.Debugf("Sending SSH Public Key to the AWS via API", e.InstanceID)
 
 	_, err = svc.SendSSHPublicKey(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case ec2instanceconnect.ErrCodeAuthException:
-				fmt.Println(ec2instanceconnect.ErrCodeAuthException, aerr.Error())
+				return fmt.Errorf("%s: %v", ec2instanceconnect.ErrCodeAuthException, aerr.Error())
 			case ec2instanceconnect.ErrCodeInvalidArgsException:
-				fmt.Println(ec2instanceconnect.ErrCodeInvalidArgsException, aerr.Error())
+				return fmt.Errorf("%s: %v", ec2instanceconnect.ErrCodeInvalidArgsException, aerr.Error())
 			case ec2instanceconnect.ErrCodeServiceException:
-				fmt.Println(ec2instanceconnect.ErrCodeServiceException, aerr.Error())
+				return fmt.Errorf("%s: %v", ec2instanceconnect.ErrCodeServiceException, aerr.Error())
 			case ec2instanceconnect.ErrCodeThrottlingException:
-				fmt.Println(ec2instanceconnect.ErrCodeThrottlingException, aerr.Error())
+				return fmt.Errorf("%s: %v", ec2instanceconnect.ErrCodeThrottlingException, aerr.Error())
 			case ec2instanceconnect.ErrCodeEC2InstanceNotFoundException:
-				fmt.Println(ec2instanceconnect.ErrCodeEC2InstanceNotFoundException, aerr.Error())
+				return fmt.Errorf("%s: %v", ec2instanceconnect.ErrCodeEC2InstanceNotFoundException, aerr.Error())
 			default:
-				fmt.Println(aerr.Error())
+				return fmt.Errorf(aerr.Error())
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
-			fmt.Println(err.Error())
+			return fmt.Errorf(err.Error())
 		}
-		return
 	}
 
 	return nil
 
 }
 
-// Connect is a
+// Connect is a TODO:
 func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
-	// TODO: aws.Connect proper docs
-
 	var ipAddr string
 
 	appConfig := config.Get()
+	appLogger := config.LoadLogger()
 	sshSession, err := ssh.NewSession(e.InstanceID)
 
 	if err != nil {
-		log.Fatalf("unable to raise an ssh session: %v", err)
+		return
 	}
 
 	err = e.sendSSHPublicKey(sshSession.PublicKey)
 	if err != nil {
-		log.Fatalf("unable to send public key to AWS: %v", err)
+		return
 	}
 
 	ipAddr = e.PrivateIP
@@ -115,8 +114,12 @@ func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
 		if e.PublicIP == "" {
 			return fmt.Errorf("Could not find public IP for instance %s", e.Name)
 		}
+
+		appLogger.Debugf("Use public IP to connect to the EC2 instance target: %s", e.PublicIP)
 		ipAddr = e.PublicIP
 	}
+
+	appLogger.Debugf("Establish an SSH connection to the EC2 instance target (%s)", e.InstanceID)
 
 	sshArgs := []string{
 		"-l",
@@ -126,13 +129,13 @@ func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
 		ipAddr,
 	}
 
-	sshArgs = append(sshArgs, strings.Split(appConfig.SSHOpts, " ")...)
+	sshOpts := strings.Split(appConfig.SSHOpts, " ")
+	sshArgs = append(sshArgs, sshOpts...)
 
 	fmt.Printf("Running command: ssh %s\n", strings.Join(sshArgs[:], " "))
-
 	cmd := exec.Command("ssh", sshArgs...)
-	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
