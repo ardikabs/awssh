@@ -7,5 +7,3 @@ func main() {
 }
 
 // TODO: unittest
-// TODO: Code documentation with proper comment
-// TODO: README documentation
