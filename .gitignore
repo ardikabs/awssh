@@ -1,0 +1,12 @@
+
+vendor/
+deploy/_output
+.env
+*.log
+*.out
+config.json
+.DS_Store
+*.swp
+.idea
+application.yml
+*.html
