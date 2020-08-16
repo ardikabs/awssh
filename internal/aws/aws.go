@@ -30,7 +30,7 @@ func getInstance(session *session.Session, input *ec2.DescribeInstancesInput) (e
 	result, err := svc.DescribeInstances(input)
 
 	if len(result.Reservations) == 0 {
-		return nil, errors.New("no instance found")
+		return nil, errors.New("either no instance is found or you are selecting wrong Region")
 	}
 
 	reservations := result.Reservations
