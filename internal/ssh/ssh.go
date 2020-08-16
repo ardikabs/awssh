@@ -10,12 +10,14 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 )
 
-// Session is
+// Session represent an SSH data model consist of a SSH PublicKey
 type Session struct {
 	PublicKey string
 }
 
-// NewSession is TODO:
+// NewSession creates a new SSH session from instanceID
+// This method will determine to select whether need to create a new temporary ssh keypair
+// or used an existing key given from ssh-agent
 func NewSession(instanceID string) (session *Session, err error) {
 	sshSocket := os.Getenv("SSH_AUTH_SOCK")
 	conn, err := net.Dial("unix", sshSocket)

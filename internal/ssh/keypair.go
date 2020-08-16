@@ -8,13 +8,13 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// KeyPair is a
+// KeyPair represent of a SSH-RSA KeyPair data
 type KeyPair struct {
 	PrivateKey *rsa.PrivateKey
 	PublicKey  []byte
 }
 
-// NewKeyPair is a TODO:
+// NewKeyPair creates a new KeyPair from key size
 func NewKeyPair(keysize int) (keypair *KeyPair, err error) {
 	rsaKey, err := rsa.GenerateKey(rand.Reader, keysize)
 

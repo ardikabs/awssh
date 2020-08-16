@@ -10,14 +10,19 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-// NewSession is TODO:
+// NewSession creates a new AWS session from region input or region environment variables (ex: AWS_DEFAULT_REGION, AWS_REGION)
+// all the credentials loaded in a common way of AWS credentials such as,
+// AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables
+// or loaded from AWS shared-credentials located in ~/.aws/credentials
+// in particularly when you need to use AWS_PROFILE located in ~/.aws/config
+// you need to set AWS_SDK_LOAD_CONFIG=1
 func NewSession(region string) *session.Session {
 	return session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(region),
 	}))
 }
 
-// GetInstanceWithID is TODO:
+// GetInstanceWithID used to get instance with InstanceID input
 func GetInstanceWithID(session *session.Session, instanceID string) (ec2Instances []*EC2Instance, err error) {
 	input := &ec2.DescribeInstancesInput{
 		InstanceIds: []*string{
@@ -29,7 +34,7 @@ func GetInstanceWithID(session *session.Session, instanceID string) (ec2Instance
 	return
 }
 
-// GetInstanceWithTag is TODO:
+// GetInstanceWithTag used to geet instance with key-value pair tags input (ex: Environment=production,ProductDomain=VirtualProduct)
 func GetInstanceWithTag(session *session.Session, tags string) (ec2Instances []*EC2Instance, err error) {
 
 	input := &ec2.DescribeInstancesInput{
@@ -40,6 +45,8 @@ func GetInstanceWithTag(session *session.Session, tags string) (ec2Instances []*
 	return
 }
 
+// prepareFilters used to form a proper AWS filter tags format
+// from a raw tags input format
 func prepareFilters(rawTags string) (filters []*ec2.Filter) {
 	appLogger := config.LoadLogger()
 
@@ -70,11 +77,13 @@ func prepareFilters(rawTags string) (filters []*ec2.Filter) {
 		filters = append(filters, f)
 	}
 
-	appLogger.Debugf("Use the following filters to filter the EC2 instances: %v", filters)
+	appLogger.Debugf("Use the following filters to filter EC2 instances: %v", filters)
 
 	return
 }
 
+// getInstance handle the underlaying to gather the EC2 instances
+// following with the DescribeInstances method
 func getInstance(session *session.Session, input *ec2.DescribeInstancesInput) (ec2Instances []*EC2Instance, err error) {
 	svc := ec2.New(session)
 	result, err := svc.DescribeInstances(input)

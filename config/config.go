@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Config is a
+// Config represent the application configuration
 type Config struct {
 	Debug       bool   `envconfig:"debug" default:"0"`
 	Tags        string `envconfig:"tags" default:"Name=*"`
@@ -20,19 +20,20 @@ type Config struct {
 var appConfig Config
 var appLogger *zap.SugaredLogger
 
-// Load is used to load the application configuration
+// Load used to load the application configuration
 func Load() {
 	if err := envconfig.Process("awssh", &appConfig); err != nil {
 		log.Fatal(err.Error())
 	}
 }
 
-// Get is used to gather the application configuration
+// Get used to gather the application configuration state
 func Get() *Config {
 	return &appConfig
 }
 
-// LoadLogger is
+// LoadLogger used to load the application logger
+// built with zap.SugaredLogger
 func LoadLogger() *zap.SugaredLogger {
 	var level zapcore.Level
 
@@ -67,7 +68,7 @@ func LoadLogger() *zap.SugaredLogger {
 	return appLogger
 }
 
-// GetLogger is
+// GetLogger used to gather the application logger state
 func GetLogger() *zap.SugaredLogger {
 	return appLogger
 }

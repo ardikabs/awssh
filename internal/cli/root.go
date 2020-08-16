@@ -21,10 +21,10 @@ func init() {
 	appConfig := config.Get()
 
 	rootCommand.Flags().BoolVarP(&appConfig.Debug, "debug", "d", false, "Enabled debug mode")
-	rootCommand.Flags().StringVarP(&appConfig.Tags, "tags", "t", "Name=*", "EC2 tags keypair")
+	rootCommand.Flags().StringVarP(&appConfig.Tags, "tags", "t", "Name=*", "EC2 tags key-value pair")
 	rootCommand.Flags().StringVarP(&appConfig.SSHUsername, "ssh-username", "u", "ec2-user", "EC2 SSH username")
 	rootCommand.Flags().StringVarP(&appConfig.SSHPort, "ssh-port", "p", "22", "An EC2 instance ssh port")
-	rootCommand.Flags().StringVarP(&appConfig.SSHOpts, "ssh-opts", "o", "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5", "An ssh optional arguments")
+	rootCommand.Flags().StringVarP(&appConfig.SSHOpts, "ssh-opts", "o", "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5", "An additional ssh options")
 	rootCommand.Flags().BoolVarP(&usePublicIP, "use-public-ip", "", false, "Use public IP to access the EC2 instance")
 	rootCommand.Flags().StringVarP(&region, "region", "", os.Getenv("AWS_DEFAULT_REGION"), "Default AWS region to be used. Either set AWS_REGION or AWS_DEFAULT_REGION")
 }
@@ -66,7 +66,7 @@ func runSSHAccess(cmd *cobra.Command, args []string) {
 
 		target = instances[0]
 	} else {
-		appLogger.Debugf("Filter EC2 instances with following tags: %s", appConfig.Tags)
+		appLogger.Debugf("Filter EC2 instances with the following tags: %s", appConfig.Tags)
 
 		instances, err := aws.GetInstanceWithTag(session, appConfig.Tags)
 		appLogger.Debugf("Found %d EC2 instances on region %s", len(instances), *session.Config.Region)
