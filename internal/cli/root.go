@@ -59,7 +59,7 @@ func promptUI(instances []*aws.EC2Instance) (instance *aws.EC2Instance, err erro
 		inst := instances[index]
 		name := inst.Name
 		input := i
-		return strings.Contains(name, input) || strings.Contains(inst.InstanceID, input) || strings.Contains(inst.PrivateIP, input) || strings.Contains(inst.PublicIP, input)
+		return strings.Contains(name, input) || strings.Contains(inst.InstanceID, input) || strings.Contains(inst.PrivateIP, input) || strings.Contains(inst.PrivateIP, input)
 	}
 
 	templates := &promptui.SelectTemplates{
