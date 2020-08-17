@@ -7,18 +7,19 @@ import (
 	"strings"
 
 	"awssh/config"
+	"awssh/internal/logging"
 	"awssh/internal/ssh"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
+	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
 )
 
 // EC2Instance represent all the necessary EC2 components
 type EC2Instance struct {
-	session *session.Session
+	session *aws_session.Session
 
 	Name             string
 	InstanceID       string
@@ -28,7 +29,7 @@ type EC2Instance struct {
 }
 
 // NewEC2Instance creates a new EC2Instance from aws ec2 instance source
-func NewEC2Instance(session *session.Session, instance *ec2.Instance) *EC2Instance {
+func NewEC2Instance(session *aws_session.Session, instance *ec2.Instance) *EC2Instance {
 	ec2InstanceName := getTagValue("Name", instance)
 
 	if ec2InstanceName == "" {
@@ -57,7 +58,7 @@ func NewEC2Instance(session *session.Session, instance *ec2.Instance) *EC2Instan
 // for sending SSH Public Key to the AWS API Server
 func (e *EC2Instance) sendSSHPublicKey(publicKey string) (err error) {
 	appConfig := config.Get()
-	appLogger := config.LoadLogger()
+	logger := logging.Get()
 
 	svc := ec2instanceconnect.New(e.session)
 	input := &ec2instanceconnect.SendSSHPublicKeyInput{
@@ -67,7 +68,7 @@ func (e *EC2Instance) sendSSHPublicKey(publicKey string) (err error) {
 		AvailabilityZone: aws.String(e.AvailabilityZone),
 	}
 
-	appLogger.Debugf("Sending SSH Public Key for EC2 instance '%s' (%s)", e.Name, e.InstanceID)
+	logger.Debugf("Sending SSH Public Key for EC2 instance '%s' (%s)", e.Name, e.InstanceID)
 
 	_, err = svc.SendSSHPublicKey(input)
 	if err != nil {
@@ -103,7 +104,10 @@ func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
 	var ipAddr string
 
 	appConfig := config.Get()
-	appLogger := config.LoadLogger()
+	logger := logging.Get()
+
+	logger.Debugf("Select EC2 instance '%s' (%s)", e.Name, e.InstanceID)
+
 	sshSession, err := ssh.NewSession(e.InstanceID)
 
 	if err != nil {
@@ -122,11 +126,11 @@ func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
 			return fmt.Errorf("Could not find public IP for EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
 		}
 
-		appLogger.Debugf("Use public IP to connect to the EC2 instance target '%s' (%s): %s", e.Name, e.InstanceID, e.PublicIP)
+		logger.Debugf("Use public IP to connect to the EC2 instance target '%s' (%s): %s", e.Name, e.InstanceID, e.PublicIP)
 		ipAddr = e.PublicIP
 	}
 
-	appLogger.Debugf("Establish an SSH connection to the EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
+	logger.Debugf("Establish an SSH connection to the EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
 
 	sshArgs := []string{
 		"-l",

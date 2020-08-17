@@ -3,6 +3,8 @@ package cli
 import (
 	"awssh/config"
 	"awssh/internal/aws"
+	"awssh/internal/logging"
+
 	"fmt"
 	"os"
 	"regexp"
@@ -41,7 +43,7 @@ func validateInstanceIDArgs(cmd *cobra.Command, args []string) (err error) {
 	if len(args) > 0 {
 		match, _ := regexp.MatchString(`^i-[\w]+`, args[0])
 		if !match {
-			return fmt.Errorf("invalid instance-id format: '%s'", args[0])
+			return fmt.Errorf("Invalid instance-id format: '%s'", args[0])
 		}
 	}
 	return
@@ -49,48 +51,33 @@ func validateInstanceIDArgs(cmd *cobra.Command, args []string) (err error) {
 
 func runSSHAccess(cmd *cobra.Command, args []string) {
 	var target *aws.EC2Instance
-	appConfig := config.Get()
-	appLogger := config.LoadLogger()
 
-	// get AWS session in common way, env variables and shared-credential file
+	appConfig := config.Get()
+
+	logging.Init(appConfig.Debug)
+
 	session := aws.NewSession(region)
-	appLogger.Debugf("Region: %s", *session.Config.Region)
 
 	if len(args) > 0 {
-		appLogger.Debugf("Filter EC2 instances with InstanceID: %s", args[0])
-
 		instances, err := aws.GetInstanceWithID(session, args[0])
 		if err != nil {
-			appLogger.Debug(err)
 			exitWithError(err)
 		}
 
 		target = instances[0]
 	} else {
-		appLogger.Debugf("Filter EC2 instances with the following tags: %s", appConfig.Tags)
-
 		instances, err := aws.GetInstanceWithTag(session, appConfig.Tags)
-		appLogger.Debugf("Found %d EC2 instances on region %s", len(instances), *session.Config.Region)
-
 		if err != nil {
-			appLogger.Debug(err)
 			exitWithError(err)
 		}
 
 		target, err = promptUI(instances)
 		if err != nil {
-			appLogger.Debug(err)
 			exitWithError(err)
 		}
-
-		appLogger.Debugf("Select EC2 instance '%s' (%s)", target.Name, target.InstanceID)
 	}
 
-	err := target.Connect(usePublicIP)
-	if err != nil {
-		appLogger.Debug(err)
-		exitWithError(err)
-	}
+	target.Connect(usePublicIP)
 }
 
 func promptUI(instances []*aws.EC2Instance) (instance *aws.EC2Instance, err error) {

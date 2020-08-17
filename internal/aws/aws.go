@@ -1,12 +1,13 @@
 package aws
 
 import (
-	"awssh/config"
+	"awssh/internal/logging"
+
 	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
+	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -16,39 +17,54 @@ import (
 // or loaded from AWS shared-credentials located in ~/.aws/credentials
 // in particularly when you need to use AWS_PROFILE located in ~/.aws/config
 // you need to set AWS_SDK_LOAD_CONFIG=1
-func NewSession(region string) *session.Session {
-	return session.Must(session.NewSession(&aws.Config{
+func NewSession(region string) (session *aws_session.Session) {
+	logger := logging.Get()
+
+	session = aws_session.Must(aws_session.NewSession(&aws.Config{
 		Region: aws.String(region),
 	}))
+
+	logger.Debugf("Region: %s", *session.Config.Region)
+
+	return
 }
 
 // GetInstanceWithID used to get instance with InstanceID input
-func GetInstanceWithID(session *session.Session, instanceID string) (ec2Instances []*EC2Instance, err error) {
+func GetInstanceWithID(session *aws_session.Session, instanceID string) (ec2Instances []*EC2Instance, err error) {
+
+	logger := logging.Get()
+
 	input := &ec2.DescribeInstancesInput{
 		InstanceIds: []*string{
 			aws.String(instanceID),
 		},
 	}
 
+	logger.Debugf("Filter EC2 instances with InstanceID: %s", instanceID)
 	ec2Instances, err = getInstance(session, input)
+
 	return
 }
 
 // GetInstanceWithTag used to get instance with key-value pair tags input (ex: Environment=production,ProductDomain=VirtualProduct)
-func GetInstanceWithTag(session *session.Session, tags string) (ec2Instances []*EC2Instance, err error) {
+func GetInstanceWithTag(session *aws_session.Session, tags string) (ec2Instances []*EC2Instance, err error) {
+
+	logger := logging.Get()
 
 	input := &ec2.DescribeInstancesInput{
 		Filters: prepareFilters(tags),
 	}
 
+	logger.Debugf("Filter EC2 instances with tags: %s", tags)
 	ec2Instances, err = getInstance(session, input)
+
 	return
 }
 
 // prepareFilters used to form a proper AWS filter tags format
 // from a raw tags input format
 func prepareFilters(rawTags string) (filters []*ec2.Filter) {
-	appLogger := config.LoadLogger()
+	logger := logging.Get()
 
 	awsTags := make(map[string][]*string)
 
@@ -77,14 +93,17 @@ func prepareFilters(rawTags string) (filters []*ec2.Filter) {
 		filters = append(filters, f)
 	}
 
-	appLogger.Debugf("Use the following filters to filter EC2 instances: %v", filters)
+	logger.Debugf("Use the following filters to filter EC2 instances: %v", filters)
 
 	return
 }
 
 // getInstance handle the underlaying to gather the EC2 instances
 // following with the DescribeInstances method
-func getInstance(session *session.Session, input *ec2.DescribeInstancesInput) (ec2Instances []*EC2Instance, err error) {
+func getInstance(session *aws_session.Session, input *ec2.DescribeInstancesInput) (ec2Instances []*EC2Instance, err error) {
+
+	logger := logging.Get()
+
 	svc := ec2.New(session)
 	result, err := svc.DescribeInstances(input)
 
@@ -93,7 +112,7 @@ func getInstance(session *session.Session, input *ec2.DescribeInstancesInput) (e
 	}
 
 	if len(result.Reservations) == 0 {
-		return nil, fmt.Errorf("No instance is found")
+		return nil, fmt.Errorf("No instance is found on region %s", *session.Config.Region)
 	}
 
 	reservations := result.Reservations
@@ -104,6 +123,9 @@ func getInstance(session *session.Session, input *ec2.DescribeInstancesInput) (e
 			ec2Instances = append(ec2Instances, ec2)
 		}
 	}
+
+	logger.Debugf("Found %d EC2 instances on region %s", len(ec2Instances), *session.Config.Region)
+
 	return
 }
 

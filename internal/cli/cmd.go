@@ -9,6 +9,7 @@ import (
 // Execute is an entrypoint for mokalet CLI
 func Execute() {
 	config.Load()
+
 	if err := rootCommand.Execute(); err != nil {
 		exitWithError(err)
 	}
