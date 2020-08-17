@@ -1,8 +1,6 @@
 package config
 
 import (
-	"log"
-
 	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -23,7 +21,7 @@ var appLogger *zap.SugaredLogger
 // Load used to load the application configuration
 func Load() {
 	if err := envconfig.Process("awssh", &appConfig); err != nil {
-		log.Fatal(err.Error())
+		appLogger.Fatal(err.Error())
 	}
 }
 
