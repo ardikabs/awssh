@@ -11,7 +11,7 @@ import (
 // KeyPair represent of a SSH-RSA KeyPair data
 type KeyPair struct {
 	PrivateKey *rsa.PrivateKey
-	PublicKey  []byte
+	PublicKey  gossh.PublicKey
 }
 
 // NewKeyPair creates a new KeyPair from key size
@@ -27,10 +27,8 @@ func NewKeyPair(keysize int) (keypair *KeyPair, err error) {
 		return nil, fmt.Errorf("Failed to create ssh public key: (%v)", err)
 	}
 
-	publicKeySerialized := gossh.MarshalAuthorizedKey(publicKey)
-
 	return &KeyPair{
 		PrivateKey: rsaKey,
-		PublicKey:  publicKeySerialized,
+		PublicKey:  publicKey,
 	}, nil
 }

@@ -6,7 +6,9 @@ import (
 	"os"
 
 	"awssh/config"
+	"awssh/internal/logging"
 
+	gossh "golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 )
 
@@ -17,8 +19,12 @@ type Session struct {
 
 // NewSession creates a new SSH session from instanceID
 // This method will determine to select whether need to create a new temporary ssh keypair
-// or used an existing key given from ssh-agent
+// or used the first existing key given from ssh-agent
 func NewSession(instanceID string) (session *Session, err error) {
+	appConfig := config.Get()
+
+	logger := logging.Get()
+
 	sshSocket := os.Getenv("SSH_AUTH_SOCK")
 	conn, err := net.Dial("unix", sshSocket)
 
@@ -38,26 +44,28 @@ func NewSession(instanceID string) (session *Session, err error) {
 
 	if len(existKeys) == 0 {
 		keypair, err := NewKeyPair(2048)
+		if err != nil {
+			return nil, err
+		}
 
-		appConfig := config.Get()
-
-		tmpKey := agent.AddedKey{
+		tmpSSHKeyPair := agent.AddedKey{
 			PrivateKey:       keypair.PrivateKey,
 			Comment:          fmt.Sprintf("awssh-temporary-ssh-keypair:%s:%s", appConfig.SSHUsername, instanceID),
 			LifetimeSecs:     30,
 			ConfirmBeforeUse: false,
 		}
 
-		err = agentClient.Add(tmpKey)
+		err = agentClient.Add(tmpSSHKeyPair)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to add ssh keypair to ssh agent: (%v)", err)
-
 		}
 
-		publicKey = string(keypair.PublicKey)
+		logger.Debugf("Create temporary ssh-rsa keypair (%s)", gossh.FingerprintSHA256(keypair.PublicKey))
+		publicKeySerialized := gossh.MarshalAuthorizedKey(keypair.PublicKey)
+		publicKey = string(publicKeySerialized)
 	} else {
-		// use the first ssh-key registered in ssh-agent to be loaded
-		publicKey = fmt.Sprintf("%s", existKeys[0])
+		logger.Debugf("Use existing ssh-rsa keypair from ssh-agent (%s)", gossh.FingerprintSHA256(existKeys[0]))
+		publicKey = fmt.Sprint(existKeys[0])
 	}
 
 	return &Session{
