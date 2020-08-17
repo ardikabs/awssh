@@ -119,7 +119,7 @@ func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
 
 	if usePublicIP {
 		if e.PublicIP == "" {
-			return fmt.Errorf("Could not find public IP for EC2 instance '%s'", e.Name)
+			return fmt.Errorf("Could not find public IP for EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
 		}
 
 		appLogger.Debugf("Use public IP to connect to the EC2 instance target '%s' (%s): %s", e.Name, e.InstanceID, e.PublicIP)
