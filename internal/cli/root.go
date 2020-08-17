@@ -61,7 +61,8 @@ func runSSHAccess(cmd *cobra.Command, args []string) {
 
 		instances, err := aws.GetInstanceWithID(session, args[0])
 		if err != nil {
-			appLogger.Error(err)
+			appLogger.Debug(err)
+			exitWithError(err)
 		}
 
 		target = instances[0]
