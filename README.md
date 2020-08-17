@@ -1,7 +1,7 @@
 # awssh
 ## Description
-`awssh` is a simple CLI providing an ssh access to EC2 utilizing an ec2-instance-connect command.<br>
-The `awssh` is extending the ec2-instance-connect command to be aware with ssh-agent and/or populate new temporary ssh keypair while trying to establish an ssh connection to the EC2 instance target.
+`awssh` is a simple CLI providing an ssh access to EC2 utilizing an [EC2 Instance Connect](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect.html) feature.<br>
+The `awssh` is extending the `aws ec2-instance-connect` command to be aware with ssh-agent and/or populate new temporary ssh keypair while trying to establish an ssh connection to the EC2 instance target.
 
 ## Diagram Flow
 ```bash
