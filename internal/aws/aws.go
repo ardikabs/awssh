@@ -34,7 +34,7 @@ func GetInstanceWithID(session *session.Session, instanceID string) (ec2Instance
 	return
 }
 
-// GetInstanceWithTag used to geet instance with key-value pair tags input (ex: Environment=production,ProductDomain=VirtualProduct)
+// GetInstanceWithTag used to get instance with key-value pair tags input (ex: Environment=production,ProductDomain=VirtualProduct)
 func GetInstanceWithTag(session *session.Session, tags string) (ec2Instances []*EC2Instance, err error) {
 
 	input := &ec2.DescribeInstancesInput{
@@ -89,7 +89,7 @@ func getInstance(session *session.Session, input *ec2.DescribeInstancesInput) (e
 	result, err := svc.DescribeInstances(input)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get instance: %v", err)
+		return nil, fmt.Errorf("Failed to get instance: (%v)", err)
 	}
 
 	if len(result.Reservations) == 0 {
