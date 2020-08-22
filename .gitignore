@@ -1,6 +1,7 @@
 
 vendor/
 deploy/_output
+bin/**
 .env
 *.log
 *.out
