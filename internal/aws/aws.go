@@ -51,8 +51,14 @@ func GetInstanceWithTag(session *aws_session.Session, tags string) (ec2Instances
 
 	logger := logging.Get()
 
+	filters, err := prepareFilters(tags)
+
+	if err != nil {
+		return
+	}
+
 	input := &ec2.DescribeInstancesInput{
-		Filters: prepareFilters(tags),
+		Filters: filters,
 	}
 
 	logger.Debugf("Filter EC2 instances with tags: %s", tags)
@@ -63,7 +69,7 @@ func GetInstanceWithTag(session *aws_session.Session, tags string) (ec2Instances
 
 // prepareFilters used to form a proper AWS filter tags format
 // from a raw tags input format
-func prepareFilters(rawTags string) (filters []*ec2.Filter) {
+func prepareFilters(rawTags string) (filters []*ec2.Filter, err error) {
 	logger := logging.Get()
 
 	awsTags := make(map[string][]*string)
@@ -72,9 +78,13 @@ func prepareFilters(rawTags string) (filters []*ec2.Filter) {
 
 	for _, tags := range splitTags {
 		part := strings.Split(tags, "=")
+
+		if len(part) != 2 {
+			return nil, fmt.Errorf("Wrong tag format, it should be follow 'Key=Value' format: '%s'", tags)
+		}
+
 		key := part[0]
 		value := aws.String(part[1])
-
 		awsTags[key] = append(awsTags[key], value)
 	}
 

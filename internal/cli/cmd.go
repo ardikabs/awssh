@@ -11,7 +11,7 @@ func Execute() {
 	config.Load()
 
 	if err := rootCommand.Execute(); err != nil {
-		exitWithError(err)
+		os.Exit(1)
 	}
 }
 

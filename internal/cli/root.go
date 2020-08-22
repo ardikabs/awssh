@@ -93,7 +93,10 @@ func runSSHAccess(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	target.Connect(usePublicIP)
+	err := target.Connect(usePublicIP)
+	if err != nil {
+		exitWithError(err)
+	}
 }
 
 func promptUI(instances []*aws.EC2Instance) (instance *aws.EC2Instance, err error) {
