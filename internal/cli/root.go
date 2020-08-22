@@ -35,8 +35,24 @@ var rootCommand = &cobra.Command{
 	Use:   "awssh",
 	Short: "awssh is a simple CLI to ssh'ing EC2",
 	Long:  "awssh is a simple CLI providing an ssh access to EC2 utilizing ec2-instance-connect",
-	Args:  validateInstanceIDArgs,
-	Run:   runSSHAccess,
+	Example: `
+  # List all of the EC2 instances given by the credentials
+  awssh --region=ap-southeast-1
+
+  # Select EC2 instance with instance-id
+  awssh i-0387e016c47c6170c
+
+  # Select EC2 instance given with selected tags
+  awssh --tags "Environment=production,Project=jenkins,Owner=SRE"
+
+  # Use an additional ssh options
+  awssh --tags "Environment=staging,ProductDomain=bastion" --ssh-username=centos --ssh-port=2222 --ssh-opts="-o ServerAliveInterval=60s"
+
+  #  public ip to connect to the EC2 instance
+  awssh --use-public-ip
+`,
+	Args: validateInstanceIDArgs,
+	Run:  runSSHAccess,
 }
 
 func validateInstanceIDArgs(cmd *cobra.Command, args []string) (err error) {
