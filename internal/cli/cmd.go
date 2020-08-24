@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// Execute is an entrypoint for mokalet CLI
+// Execute is an entrypoint for the command line interface
 func Execute() {
 	config.Load()
 
