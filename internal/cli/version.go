@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 
+	"github.com/morikuni/aec"
 	"github.com/spf13/cobra"
 )
 
@@ -23,12 +24,12 @@ var versionCmd = &cobra.Command{
 	Example:      `  awssh version`,
 	SilenceUsage: false,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Awssh an extended ec2-instance-connect command tool")
 		printVersion()
 	},
 }
 
 func printVersion() {
+	printASCIIArt()
 	if len(Version) == 0 {
 		fmt.Println("Version: dev")
 	} else {
@@ -36,3 +37,18 @@ func printVersion() {
 	}
 	fmt.Println("Git Commit:", GitCommit)
 }
+
+func printASCIIArt() {
+	awsshLogo := aec.CyanF.Apply(awsshFigletStr)
+	fmt.Print(awsshLogo)
+}
+
+const awsshFigletStr = `                        _
+                       | |
+  __ ___      _____ ___| |__
+ / _` + "`" + ` \ \ /\ / / __/ __| '_ \
+| (_| |\ V  V /\__ \__ \ | | |
+ \__,_| \_/\_/ |___/___/_| |_|
+
+an extended ec2-instance-connect command tool
+`
