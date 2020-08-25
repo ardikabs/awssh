@@ -1,4 +1,5 @@
 
+awssh
 vendor/
 deploy/_output
 bin/**

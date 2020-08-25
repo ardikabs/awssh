@@ -17,7 +17,7 @@ pretty:
 	gofmt -s -w **/*.go
 
 build:
-	CGO_ENABLED=0 go build app/cli/main.go
+	CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o awssh app/cli/main.go
 
 .PHONY: dist
 dist:

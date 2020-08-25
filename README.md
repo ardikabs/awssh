@@ -30,10 +30,7 @@ The `awssh` is extending the `aws ec2-instance-connect` command to be aware with
 * Clone this repository
 
 ### Build and run binary file
-To build binary file:
-1. Linux: `make build-linux`
-2. Windows: `make build-windows`
-3. MacOS: `make build-darwin`
+To build binary file: `make build`
 
 ### Installation Guide
 Check the [release page](https://github.com/ardikabs/awssh/releases).
