@@ -41,7 +41,7 @@ func MakeRoot() *cobra.Command {
 	  # Use an additional ssh options
 	  awssh --tags "Environment=staging,ProductDomain=bastion" --ssh-username=centos --ssh-port=2222 --ssh-opts="-o ServerAliveInterval=60s"
 
-	  #  public ip to connect to the EC2 instance
+	  # Use public ip to connect to the EC2 instance
 	  awssh --use-public-ip
 	`,
 	}

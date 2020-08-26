@@ -39,7 +39,7 @@ Examples:
   # Use an additional ssh options
   awssh --tags "Environment=staging,ProductDomain=bastion" --ssh-username=centos --ssh-port=2222 --ssh-opts="-o ServerAliveInterval=60s"
 
-  #  public ip to connect to the EC2 instance
+  # Use public ip to connect to the EC2 instance
   awssh --use-public-ip
 
 Available Commands:
@@ -60,16 +60,16 @@ Flags:
 ```bash
 $ awssh --debug
 
-2020-08-17T00:45:24.734+0700    DEBUG  Region: ap-southeast-1
-2020-08-17T00:45:24.734+0700    DEBUG  Use the following filters to filter EC2 instances: [{
+DEBUG  Region: ap-southeast-1
+DEBUG  Use the following filters to filter EC2 instances: [{
   Name: "instance-state-name",
   Values: ["running"]
 } {
   Name: "tag:Name",
   Values: ["*"]
 }]
-2020-08-17T00:45:25.734+0700    DEBUG  Filter EC2 instances with the following tags: Name=*
-2020-08-17T00:45:26.672+0700    DEBUG  Found 8 EC2 instances on region ap-southeast-1
+DEBUG  Filter EC2 instances with the following tags: Name=*
+DEBUG  Found 8 EC2 instances on region ap-southeast-1
 
 Use the arrow keys to navigate: ↓ ↑ → ←  and / toggles search
 Select an instance:
@@ -83,10 +83,10 @@ Select an instance:
     nodes-a.nodes.k8s.kops.internal i-07fc020d8c7f50e27 (10.0.172.143)
 
 nodes-a.nodes.k8s.kops.internal i-07fc020d8c7f50e27
-2020-08-17T00:48:07.080+0700    DEBUG  Select EC2 instance 'nodes-a.nodes.k8s.kops.internal' (i-07fc020d8c7f50e27)
-2020-08-17T00:48:07.081+0700    DEBUG  Use existing ssh-rsa keypair from ssh-agent (SHA256:2ISinysBKLIbWburvJesabZQaj1uzDkMouCoS45mlf4)
-2020-08-17T00:48:07.082+0700    DEBUG  Sending SSH Public Key for EC2 instance 'nodes-a.nodes.k8s.kops.internal' (i-07fc020d8c7f50e27)
-2020-08-17T00:48:07.625+0700    DEBUG  Establish an SSH connection to the EC2 instance target 'nodes-a.nodes.k8s.kops.internal' (i-07fc020d8c7f50e27)
+DEBUG  Select EC2 instance 'nodes-a.nodes.k8s.kops.internal' (i-07fc020d8c7f50e27)
+DEBUG  Use existing ssh-rsa keypair from ssh-agent (SHA256:2ISinysBKLIbWburvJesabZQaj1uzDkMouCoS45mlf4)
+DEBUG  Sending SSH Public Key for EC2 instance 'nodes-a.nodes.k8s.kops.internal' (i-07fc020d8c7f50e27)
+DEBUG  Establish an SSH connection to the EC2 instance target 'nodes-a.nodes.k8s.kops.internal' (i-07fc020d8c7f50e27)
 Running command: ssh -l ec2-user -p 22 10.0.172.143 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=3
 Warning: Permanently added '10.10.5.100' (ECDSA) to the list of known hosts.
 Last login: Sun Aug 16 17:01:52 2020 from ip-10-0-172-143.ap-southeast-1.compute.internal
