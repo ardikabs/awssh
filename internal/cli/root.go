@@ -6,7 +6,6 @@ import (
 	"awssh/internal/logging"
 
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -17,45 +16,51 @@ import (
 var (
 	usePublicIP bool
 	region      string
+	appConfig   *config.Config
 )
 
-func init() {
-	appConfig := config.Get()
+// MakeRoot used to create a root command functionality
+func MakeRoot() *cobra.Command {
 
-	rootCommand.Flags().BoolVarP(&appConfig.Debug, "debug", "d", false, "Enabled debug mode")
-	rootCommand.Flags().StringVarP(&appConfig.Tags, "tags", "t", "Name=*", "EC2 tags key-value pair")
-	rootCommand.Flags().StringVarP(&appConfig.SSHUsername, "ssh-username", "u", "ec2-user", "EC2 SSH username")
-	rootCommand.Flags().StringVarP(&appConfig.SSHPort, "ssh-port", "p", "22", "An EC2 instance ssh port")
-	rootCommand.Flags().StringVarP(&appConfig.SSHOpts, "ssh-opts", "o", "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5", "An additional ssh options")
-	rootCommand.Flags().BoolVarP(&usePublicIP, "use-public-ip", "", false, "Use public IP to access the EC2 instance")
-	rootCommand.Flags().StringVarP(&region, "region", "", os.Getenv("AWS_DEFAULT_REGION"), "Default AWS region to be used. Either set AWS_REGION or AWS_DEFAULT_REGION")
+	appConfig = config.Get()
+
+	var command = &cobra.Command{
+		Use:   "awssh",
+		Short: "awssh is a simple CLI to ssh'ing EC2",
+		Long:  "awssh is a simple CLI providing an ssh access to EC2 utilizing ec2-instance-connect",
+		Example: `
+	  # List all of the EC2 instances given by the credentials
+	  awssh --region=ap-southeast-1
+
+	  # Select EC2 instance with instance-id
+	  awssh i-0387e016c47c6170c
+
+	  # Select EC2 instance given with selected tags
+	  awssh --tags "Environment=production,Project=jenkins,Owner=SRE"
+
+	  # Use an additional ssh options
+	  awssh --tags "Environment=staging,ProductDomain=bastion" --ssh-username=centos --ssh-port=2222 --ssh-opts="-o ServerAliveInterval=60s"
+
+	  #  public ip to connect to the EC2 instance
+	  awssh --use-public-ip
+	`,
+	}
+
+	command.Args = cobra.MaximumNArgs(1)
+	command.Run = runSSHAccess
+
+	command.Flags().BoolVarP(&appConfig.Debug, "debug", "d", appConfig.Debug, "Enabled debug mode")
+	command.Flags().StringVarP(&appConfig.Tags, "tags", "t", appConfig.Tags, "EC2 tags key-value pair")
+	command.Flags().StringVarP(&appConfig.SSHUsername, "ssh-username", "u", appConfig.SSHUsername, "EC2 SSH username")
+	command.Flags().StringVarP(&appConfig.SSHPort, "ssh-port", "p", appConfig.SSHPort, "An EC2 instance ssh port")
+	command.Flags().StringVarP(&appConfig.SSHOpts, "ssh-opts", "o", appConfig.SSHOpts, "An additional ssh options")
+	command.Flags().BoolVarP(&usePublicIP, "use-public-ip", "", false, "Use public IP to access the EC2 instance")
+	command.Flags().StringVarP(&region, "region", "", "", "Default AWS region to be used. Either set AWS_REGION or AWS_DEFAULT_REGION")
+
+	return command
 }
 
-var rootCommand = &cobra.Command{
-	Use:   "awssh",
-	Short: "awssh is a simple CLI to ssh'ing EC2",
-	Long:  "awssh is a simple CLI providing an ssh access to EC2 utilizing ec2-instance-connect",
-	Example: `
-  # List all of the EC2 instances given by the credentials
-  awssh --region=ap-southeast-1
-
-  # Select EC2 instance with instance-id
-  awssh i-0387e016c47c6170c
-
-  # Select EC2 instance given with selected tags
-  awssh --tags "Environment=production,Project=jenkins,Owner=SRE"
-
-  # Use an additional ssh options
-  awssh --tags "Environment=staging,ProductDomain=bastion" --ssh-username=centos --ssh-port=2222 --ssh-opts="-o ServerAliveInterval=60s"
-
-  #  public ip to connect to the EC2 instance
-  awssh --use-public-ip
-`,
-	Args: validateInstanceIDArgs,
-	Run:  runSSHAccess,
-}
-
-func validateInstanceIDArgs(cmd *cobra.Command, args []string) (err error) {
+func validateInstanceIDArgs(args []string) (err error) {
 	if len(args) > 0 {
 		match, _ := regexp.MatchString(`^i-[\w]+`, args[0])
 		if !match {
@@ -66,36 +71,40 @@ func validateInstanceIDArgs(cmd *cobra.Command, args []string) (err error) {
 }
 
 func runSSHAccess(cmd *cobra.Command, args []string) {
+	logging.NewLogger(appConfig.Debug)
+
+	err := validateInstanceIDArgs(args)
+
+	if err != nil {
+		logging.ExitWithError(err)
+	}
+
 	var target *aws.EC2Instance
-
-	appConfig := config.Get()
-
-	logging.Init(appConfig.Debug)
 
 	session := aws.NewSession(region)
 
 	if len(args) > 0 {
 		instances, err := aws.GetInstanceWithID(session, args[0])
 		if err != nil {
-			exitWithError(err)
+			logging.ExitWithError(err)
 		}
 
 		target = instances[0]
 	} else {
 		instances, err := aws.GetInstanceWithTag(session, appConfig.Tags)
 		if err != nil {
-			exitWithError(err)
+			logging.ExitWithError(err)
 		}
 
 		target, err = promptUI(instances)
 		if err != nil {
-			exitWithError(err)
+			logging.ExitWithError(err)
 		}
 	}
 
-	err := target.Connect(usePublicIP)
+	err = target.Connect(usePublicIP)
 	if err != nil {
-		exitWithError(err)
+		logging.ExitWithError(err)
 	}
 }
 

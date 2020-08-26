@@ -7,25 +7,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	rootCommand.AddCommand(versionCmd)
-}
-
 // Version represent an awssh version
 var (
 	Version   string
 	GitCommit string
 )
 
-var versionCmd = &cobra.Command{
-	Use:          "version",
-	Short:        "Print the version number of awssh",
-	Long:         `All software has versions. This is awssh's`,
-	Example:      `  awssh version`,
-	SilenceUsage: false,
-	Run: func(cmd *cobra.Command, args []string) {
+const awsshFigletStr = `                        _
+                       | |
+  __ ___      _____ ___| |__
+ / _` + "`" + ` \ \ /\ / / __/ __| '_ \
+| (_| |\ V  V /\__ \__ \ | | |
+ \__,_| \_/\_/ |___/___/_| |_|
+
+an extended ec2-instance-connect command tool
+
+`
+
+// MakeVersion used to create version subcommand
+func MakeVersion() *cobra.Command {
+	var command = &cobra.Command{
+		Use:          "version",
+		Short:        "Print the version number of awssh",
+		Long:         `All software has versions. This is awssh's`,
+		Example:      `  awssh version`,
+		SilenceUsage: false,
+	}
+
+	command.Run = func(cmd *cobra.Command, args []string) {
 		printVersion()
-	},
+	}
+
+	return command
 }
 
 func printVersion() {
@@ -42,13 +55,3 @@ func printASCIIArt() {
 	awsshLogo := aec.CyanF.Apply(awsshFigletStr)
 	fmt.Print(awsshLogo)
 }
-
-const awsshFigletStr = `                        _
-                       | |
-  __ ___      _____ ___| |__
- / _` + "`" + ` \ \ /\ / / __/ __| '_ \
-| (_| |\ V  V /\__ \__ \ | | |
- \__,_| \_/\_/ |___/___/_| |_|
-
-an extended ec2-instance-connect command tool
-`
