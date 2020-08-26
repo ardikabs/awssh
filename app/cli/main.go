@@ -1,9 +1,22 @@
 package main
 
-import "awssh/internal/cli"
+import (
+	"awssh/config"
+	"awssh/internal/cli"
+	"os"
+)
 
 func main() {
-	cli.Execute()
+
+	config.Load()
+
+	rootCommand := cli.MakeRoot()
+
+	rootCommand.AddCommand(cli.MakeVersion())
+
+	if err := rootCommand.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
 
 // TODO: unittest
