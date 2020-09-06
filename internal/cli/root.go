@@ -15,7 +15,6 @@ import (
 
 var (
 	usePublicIP bool
-	region      string
 	appConfig   *config.Config
 )
 
@@ -50,12 +49,12 @@ func MakeRoot() *cobra.Command {
 	command.Run = runSSHAccess
 
 	command.Flags().BoolVarP(&appConfig.Debug, "debug", "d", appConfig.Debug, "Enabled debug mode")
+	command.Flags().StringVar(&appConfig.Region, "region", appConfig.Region, "Default AWS region to be used. Either set AWS_REGION or AWS_DEFAULT_REGION")
 	command.Flags().StringVarP(&appConfig.Tags, "tags", "t", appConfig.Tags, "EC2 tags key-value pair")
 	command.Flags().StringVarP(&appConfig.SSHUsername, "ssh-username", "u", appConfig.SSHUsername, "EC2 SSH username")
 	command.Flags().StringVarP(&appConfig.SSHPort, "ssh-port", "p", appConfig.SSHPort, "An EC2 instance ssh port")
 	command.Flags().StringVarP(&appConfig.SSHOpts, "ssh-opts", "o", appConfig.SSHOpts, "An additional ssh options")
 	command.Flags().BoolVarP(&usePublicIP, "use-public-ip", "", false, "Use public IP to access the EC2 instance")
-	command.Flags().StringVarP(&region, "region", "", "", "Default AWS region to be used. Either set AWS_REGION or AWS_DEFAULT_REGION")
 
 	return command
 }
@@ -81,7 +80,7 @@ func runSSHAccess(cmd *cobra.Command, args []string) {
 
 	var target *aws.EC2Instance
 
-	session := aws.NewSession(region)
+	session := aws.NewSession(appConfig.Region)
 
 	if len(args) > 0 {
 		instances, err := aws.GetInstanceWithID(session, args[0])
