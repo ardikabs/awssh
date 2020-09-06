@@ -3,23 +3,25 @@ package config
 import (
 	"log"
 
-	"github.com/kelseyhightower/envconfig"
+	"github.com/joeshaw/envdecode"
 )
 
 // Config represent the application configuration
 type Config struct {
-	Debug       bool   `envconfig:"debug" default:"0"`
-	Tags        string `envconfig:"tags" default:"Name=*"`
-	SSHUsername string `envconfig:"ssh_username" default:"ec2-user"`
-	SSHPort     string `envconfig:"ssh_port" default:"22"`
-	SSHOpts     string `envconfig:"ssh_opts" default:"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"`
+	Debug       bool   `env:"AWSSH_DEBUG,default=0"`
+	Tags        string `env:"AWSS_TAGS,default=Name=*"`
+	SSHUsername string `env:"AWSSH_SSH_USERNAME,default=ec2-user"`
+	SSHPort     string `env:"AWSSH_SSH_PORT,default=22"`
+	SSHOpts     string `env:"AWSSH_SSH_OPTS,default=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5"`
+	Region      string `env:"AWS_DEFAULT_REGION"`
 }
 
 var appConfig Config
 
 // Load used to load the application configuration
 func Load() {
-	if err := envconfig.Process("awssh", &appConfig); err != nil {
+
+	if err := envdecode.Decode(&appConfig); err != nil {
 		log.Fatal("Can't load config: ", err)
 	}
 }

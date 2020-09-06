@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/aws/aws-sdk-go v1.33.19
+	github.com/joeshaw/envdecode v0.0.0-20200121155833-099f1fc765bd
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/manifoldco/promptui v0.7.0
 	github.com/morikuni/aec v1.0.0
