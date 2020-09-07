@@ -135,3 +135,43 @@ Last login: Sun Aug 16 17:01:52 2020 from ip-10-0-172-143.ap-southeast-1.compute
 [ec2-user@ip-10-0-172-143 ~]$ logout
 Connection to 10.0.172.143 closed.
 ```
+
+### Use it as jumper
+> `awssh` command are using ssh natively from ssh binary itself, so any kind of manipulation as long as supported by the ssh is always possible.
+
+You can combine `awssh` doing the ssh jumper with the help of `ProxyCommand` as follows:
+```bash
+$ ssh -i ~/.ssh/id_rsa ec2-user@10.10.21.153 \
+  -o ProxyCommand='awssh i-0a706767b22c7ba15 --ssh-opts="-q -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"'
+Warning: Permanently added '10.10.21.153' (ECDSA) to the list of known hosts.
+Last login: Mon Sep  7 05:24:52 2020 from ip-10-10-3-180.ap-southeast-1.compute.internal
+[centos@ip-10-10-21-153 ~]$
+Connection to 10.10.21.153 closed.
+
+# Define the ssh_config
+
+$ cat ~/.ssh/config
+# Jumper Node
+Host 10.10.5.100
+  ServerAliveInterval 60s
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+# Target Node
+Host machineA
+  HostName 10.10.21.153
+  User centos
+  Port 22
+  IdentityFile ~/.ssh/id_rsa
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  ServerAliveInterval 60s
+  ProxyCommand awssh i-0a706767b22c7ba15 --ssh-opts="-q -W %h:%p"
+
+$ ssh machineA
+Warning: Permanently added '10.10.21.153' (ECDSA) to the list of known hosts.
+Last login: Mon Sep  7 05:24:52 2020 from ip-10-10-3-180.ap-southeast-1.compute.internal
+[centos@ip-10-10-21-153 ~]$
+Connection to 10.10.21.153 closed.
+
+```
