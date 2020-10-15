@@ -50,7 +50,7 @@ func MakeRoot() *cobra.Command {
 
 	command.Flags().BoolVarP(&appConfig.Debug, "debug", "d", appConfig.Debug, "Enabled debug mode")
 	command.Flags().StringVar(&appConfig.Region, "region", appConfig.Region, "Default AWS region to be used. Either set AWS_REGION or AWS_DEFAULT_REGION")
-	command.Flags().StringVarP(&appConfig.Tags, "tags", "t", appConfig.Tags, "EC2 tags key-value pair")
+	command.Flags().StringVarP(&appConfig.Tags, "tags", "t", appConfig.Tags, "A comma-separated key-value pairs of EC2 tags. Ex: 'Name=ec2,Environment=staging'")
 	command.Flags().StringVarP(&appConfig.SSHUsername, "ssh-username", "u", appConfig.SSHUsername, "EC2 SSH username")
 	command.Flags().StringVarP(&appConfig.SSHPort, "ssh-port", "p", appConfig.SSHPort, "An EC2 instance ssh port")
 	command.Flags().StringVarP(&appConfig.SSHOpts, "ssh-opts", "o", appConfig.SSHOpts, "An additional ssh options")

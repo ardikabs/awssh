@@ -10,7 +10,7 @@ Set the AWS region either in your AWS credentials or environment variables (`AWS
 ## Environment Variables
 To using `awssh` you can setup your configuration from environment variables as follows:
 * `AWSSH_DEBUG`: Enabled debug mode for `awssh`. Default to `0` (false).
-* `AWSSH_TAGS`: List of EC2 tags key-value pair. Default to `"Name=*"`.
+* `AWSSH_TAGS`: A comma-separated key-value pairs of EC2 tags. Ex: 'Name=ec2,Environment=staging'. Default to `"Name=*"`.
 * `AWSSH_SSH_USERNAME`: An EC2 ssh username. Default to `ec2-user`.
 * `AWSSH_SSH_PORT`: An EC2 ssh port. Default to `22`.
 * `AWSSH_SSH_OPTS`: An additional ssh options. Default to `"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/nul -o ConnectTimeout=5"`
@@ -53,7 +53,7 @@ Flags:
   -o, --ssh-opts string       An additional ssh options (default "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null")
   -p, --ssh-port string       An EC2 instance ssh port (default "22")
   -u, --ssh-username string   EC2 SSH username (default "ec2-user")
-  -t, --tags string           EC2 tags key-value pair (default "Name=*")
+  -t, --tags string           A comma-separated key-value pairs of EC2 tags. Ex: 'Name=ec2,Environment=staging' (default "Name=*")
       --use-public-ip         Use public IP to access the EC2 instance
 ```
 ### Debug Mode
