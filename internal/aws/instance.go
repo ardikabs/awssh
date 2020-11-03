@@ -6,15 +6,15 @@ import (
 	"os/exec"
 	"strings"
 
-	"awssh/config"
-	"awssh/internal/logging"
-	"awssh/internal/ssh"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
+
+	"awssh/config"
+	"awssh/internal/logging"
+	"awssh/internal/ssh"
 )
 
 // EC2Instance represent all the necessary EC2 components

@@ -1,14 +1,14 @@
 package aws
 
 import (
-	"awssh/internal/logging"
-
 	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
+	"awssh/internal/logging"
 )
 
 // NewSession creates a new AWS session from region input or region environment variables (ex: AWS_DEFAULT_REGION, AWS_REGION)

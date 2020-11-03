@@ -1,16 +1,16 @@
-package cli
+package cmd
 
 import (
-	"awssh/config"
-	"awssh/internal/aws"
-	"awssh/internal/logging"
-
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
+
+	"awssh/config"
+	"awssh/internal/aws"
+	"awssh/internal/logging"
 )
 
 var (
