@@ -1,6 +1,6 @@
 Version := $(shell git describe --tags --dirty)
 GitCommit := $(shell git rev-parse HEAD)
-LDFLAGS := "-s -w -X awssh/internal/cli.Version=$(Version) -X awssh/internal/cli.GitCommit=$(GitCommit)"
+LDFLAGS := "-s -w -X awssh/cmd.Version=$(Version) -X awssh/cmd.GitCommit=$(GitCommit)"
 OUTDIR := bin
 
 .PHONY: test pretty mod tidy
@@ -17,13 +17,13 @@ pretty:
 	gofmt -s -w **/*.go
 
 build:
-	CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o awssh app/cli/main.go
+	CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o awssh
 
 .PHONY: dist
 dist:
 	mkdir -p $(OUTDIR)
-	CGO_ENABLED=0 GOOS=linux go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh app/cli/main.go
-	CGO_ENABLED=0 GOOS=darwin go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh-darwin app/cli/main.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh-armhf app/cli/main.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh-arm64 app/cli/main.go
-	CGO_ENABLED=0 GOOS=windows go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh.exe app/cli/main.go
+	CGO_ENABLED=0 GOOS=linux go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh
+	CGO_ENABLED=0 GOOS=darwin go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh-darwin
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh-armhf
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh-arm64
+	CGO_ENABLED=0 GOOS=windows go build -ldflags $(LDFLAGS) -o $(OUTDIR)/awssh.exe

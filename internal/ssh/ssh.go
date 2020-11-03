@@ -5,11 +5,11 @@ import (
 	"net"
 	"os"
 
-	"awssh/config"
-	"awssh/internal/logging"
-
 	gossh "golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
+
+	"awssh/config"
+	"awssh/internal/logging"
 )
 
 // Session represent an SSH data model consist of a SSH PublicKey
