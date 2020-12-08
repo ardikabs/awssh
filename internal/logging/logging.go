@@ -40,14 +40,14 @@ func NewLogger(debugMode bool) *zap.SugaredLogger {
 
 // Get used to get the application logger
 func Get() *zap.SugaredLogger {
-	defer appLogger.Sync()
+	defer appLogger.Sync() // nolint: errcheck
 	return appLogger
 }
 
 // ExitWithError will terminate execution with an error result
 // It prints the error to stderr and exits with a non-zero exit code
 func ExitWithError(err error) {
-	defer appLogger.Sync()
+	defer appLogger.Sync() // nolint: errcheck
 	appLogger.Error(err)
 	os.Exit(1)
 }

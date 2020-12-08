@@ -1,4 +1,7 @@
 # awssh
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/ardikabs/awssh/CI?style=flat-square)](https://github.com/ardikabs/awssh/actions?query=workflow%3ACI)
+![Go Version](https://img.shields.io/badge/go%20version-%3E=1.14-61CFDD.svg?style=flat-square)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ardikabs/awssh?style=flat-square)](https://goreportcard.com/report/github.com/ardikabs/awssh)
 ## Description
 `awssh` is a simple CLI providing an ssh access to EC2 utilizing an [EC2 Instance Connect](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect.html) feature.<br>
 The `awssh` is extending the `aws ec2-instance-connect` command to be aware with ssh-agent and/or populate new temporary ssh keypair while trying to establish an ssh connection to the EC2 instance target.
@@ -22,11 +25,11 @@ The `awssh` is extending the `aws ec2-instance-connect` command to be aware with
 
 ## Development Guide
 ### Prerequisites
-* Go 1.13.5 or later
+* Go 1.14 or later
 
 ### Setup
 * Install Git
-* Install Go 1.13.5 or later
+* Install Go 1.14 or later
 * Clone this repository
 
 ### Build and run binary file
