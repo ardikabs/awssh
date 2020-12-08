@@ -25,3 +25,10 @@ jobs:
 
       - name: Make dist
         run: make dist
+
+      - name: Upload release binaries
+        uses: alexellis/upload-assets@0.2.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["./bin/awssh*"]'
