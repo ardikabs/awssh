@@ -1,4 +1,5 @@
 # awssh
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/ardikabs/awssh/CI?style=flat-square)](https://github.com/ardikabs/awssh/actions?query=workflow%3ACI)
 ![Go Version](https://img.shields.io/badge/go%20version-%3E=1.14-61CFDD.svg?style=flat-square)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ardikabs/awssh?style=flat-square)](https://goreportcard.com/report/github.com/ardikabs/awssh)
 ## Description
