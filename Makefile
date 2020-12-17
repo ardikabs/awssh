@@ -1,4 +1,4 @@
-Version := $(shell git describe --tags --dirty)
+Version := $(shell git describe --tags --dirty --always)
 GitCommit := $(shell git rev-parse HEAD)
 LDFLAGS := "-s -w -X awssh/cmd.Version=$(Version) -X awssh/cmd.GitCommit=$(GitCommit)"
 OUTDIR := bin
