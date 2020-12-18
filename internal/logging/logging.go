@@ -38,10 +38,10 @@ func NewLogger(debugMode bool) *zap.SugaredLogger {
 	return appLogger
 }
 
-// Get used to get the application logger
-func Get() *zap.SugaredLogger {
+// Logger used to get the application logger
+func Logger() (log *zap.SugaredLogger) {
 	defer appLogger.Sync() // nolint: errcheck
-	return appLogger
+	return
 }
 
 // ExitWithError will terminate execution with an error result

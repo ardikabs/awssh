@@ -57,18 +57,15 @@ func NewEC2Instance(session *aws_session.Session, instance *ec2.Instance) *EC2In
 // sendSSHPublicKey is an extend method to do ec2-instance-connect task
 // for sending SSH Public Key to the AWS API Server
 func (e *EC2Instance) sendSSHPublicKey(publicKey string) (err error) {
-	appConfig := config.Get()
-	logger := logging.Get()
-
 	svc := ec2instanceconnect.New(e.session)
 	input := &ec2instanceconnect.SendSSHPublicKeyInput{
 		InstanceId:       aws.String(e.InstanceID),
 		SSHPublicKey:     aws.String(publicKey),
-		InstanceOSUser:   aws.String(appConfig.SSHUsername),
+		InstanceOSUser:   aws.String(config.GetSSHUsername()),
 		AvailabilityZone: aws.String(e.AvailabilityZone),
 	}
 
-	logger.Debugf("Sending SSH Public Key for EC2 instance '%s' (%s)", e.Name, e.InstanceID)
+	logging.Logger().Debugf("Sending SSH Public Key for EC2 instance '%s' (%s)", e.Name, e.InstanceID)
 
 	_, err = svc.SendSSHPublicKey(input)
 	if err != nil {
@@ -103,10 +100,7 @@ func (e *EC2Instance) sendSSHPublicKey(publicKey string) (err error) {
 func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
 	var ipAddr string
 
-	appConfig := config.Get()
-	logger := logging.Get()
-
-	logger.Debugf("Select EC2 instance '%s' (%s)", e.Name, e.InstanceID)
+	logging.Logger().Debugf("Select EC2 instance '%s' (%s)", e.Name, e.InstanceID)
 
 	sshSession, err := ssh.NewSession(e.InstanceID)
 
@@ -126,21 +120,21 @@ func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
 			return fmt.Errorf("Could not find public IP for EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
 		}
 
-		logger.Debugf("Use public IP to connect to the EC2 instance target '%s' (%s): %s", e.Name, e.InstanceID, e.PublicIP)
+		logging.Logger().Debugf("Use public IP to connect to the EC2 instance target '%s' (%s): %s", e.Name, e.InstanceID, e.PublicIP)
 		ipAddr = e.PublicIP
 	}
 
-	logger.Debugf("Establish an SSH connection to the EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
+	logging.Logger().Debugf("Establish an SSH connection to the EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
 
 	sshArgs := []string{
 		"-l",
-		appConfig.SSHUsername,
+		config.GetSSHUsername(),
 		"-p",
-		appConfig.SSHPort,
+		config.GetSSHPort(),
 		ipAddr,
 	}
 
-	sshOpts := strings.Split(appConfig.SSHOpts, " ")
+	sshOpts := strings.Split(config.GetSSHOpts(), " ")
 	sshArgs = append(sshArgs, sshOpts...)
 
 	fmt.Printf("Running command: ssh %s\n", strings.Join(sshArgs[:], " "))
