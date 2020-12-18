@@ -18,29 +18,24 @@ import (
 // in particularly when you need to use AWS_PROFILE located in ~/.aws/config
 // you need to set AWS_SDK_LOAD_CONFIG=1
 func NewSession(region string) (session *aws_session.Session) {
-	logger := logging.Get()
-
 	session = aws_session.Must(aws_session.NewSession(&aws.Config{
 		Region: aws.String(region),
 	}))
 
-	logger.Debugf("Region: %s", *session.Config.Region)
+	logging.Logger().Debugf("Region: %s", *session.Config.Region)
 
 	return
 }
 
 // GetInstanceWithID used to get instance with InstanceID input
 func GetInstanceWithID(session *aws_session.Session, instanceID string) (ec2Instances []*EC2Instance, err error) {
-
-	logger := logging.Get()
-
 	input := &ec2.DescribeInstancesInput{
 		InstanceIds: []*string{
 			aws.String(instanceID),
 		},
 	}
 
-	logger.Debugf("Filter EC2 instances with InstanceID: %s", instanceID)
+	logging.Logger().Debugf("Filter EC2 instances with InstanceID: %s", instanceID)
 	ec2Instances, err = getInstance(session, input)
 
 	return
@@ -48,9 +43,6 @@ func GetInstanceWithID(session *aws_session.Session, instanceID string) (ec2Inst
 
 // GetInstanceWithTag used to get instance with key-value pair tags input (ex: Environment=production,ProductDomain=VirtualProduct)
 func GetInstanceWithTag(session *aws_session.Session, tags string) (ec2Instances []*EC2Instance, err error) {
-
-	logger := logging.Get()
-
 	filters, err := prepareFilters(tags)
 
 	if err != nil {
@@ -61,7 +53,7 @@ func GetInstanceWithTag(session *aws_session.Session, tags string) (ec2Instances
 		Filters: filters,
 	}
 
-	logger.Debugf("Filter EC2 instances with tags: %s", tags)
+	logging.Logger().Debugf("Filter EC2 instances with tags: %s", tags)
 	ec2Instances, err = getInstance(session, input)
 
 	return
@@ -70,8 +62,6 @@ func GetInstanceWithTag(session *aws_session.Session, tags string) (ec2Instances
 // prepareFilters used to form a proper AWS filter tags format
 // from a raw tags input format
 func prepareFilters(rawTags string) (filters []*ec2.Filter, err error) {
-	logger := logging.Get()
-
 	awsTags := make(map[string][]*string)
 
 	splitTags := strings.Split(rawTags, ",")
@@ -103,7 +93,7 @@ func prepareFilters(rawTags string) (filters []*ec2.Filter, err error) {
 		filters = append(filters, f)
 	}
 
-	logger.Debugf("Use the following filters to filter EC2 instances: %v", filters)
+	logging.Logger().Debugf("Use the following filters to filter EC2 instances: %v", filters)
 
 	return
 }
@@ -111,9 +101,6 @@ func prepareFilters(rawTags string) (filters []*ec2.Filter, err error) {
 // getInstance handle the underlaying to gather the EC2 instances
 // following with the DescribeInstances method
 func getInstance(session *aws_session.Session, input *ec2.DescribeInstancesInput) (ec2Instances []*EC2Instance, err error) {
-
-	logger := logging.Get()
-
 	svc := ec2.New(session)
 	result, err := svc.DescribeInstances(input)
 
@@ -134,7 +121,7 @@ func getInstance(session *aws_session.Session, input *ec2.DescribeInstancesInput
 		}
 	}
 
-	logger.Debugf("Found %d EC2 instances on region %s", len(ec2Instances), *session.Config.Region)
+	logging.Logger().Debugf("Found %d EC2 instances on region %s", len(ec2Instances), *session.Config.Region)
 
 	return
 }
