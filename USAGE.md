@@ -14,6 +14,7 @@ To using `awssh` you can setup your configuration from environment variables as 
 * `AWSSH_SSH_USERNAME`: An EC2 ssh username. Default to `ec2-user`.
 * `AWSSH_SSH_PORT`: An EC2 ssh port. Default to `22`.
 * `AWSSH_SSH_OPTS`: An additional ssh options. Default to `"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/nul -o ConnectTimeout=5"`
+* `AWSSH_USE_PUBLIC_IP`: Use public IP to access the EC2 instance as default access entry point instead of private IP
 
 ## Examples
 ### How-to
