@@ -1,6 +1,7 @@
 Version := $(shell git describe --tags --dirty --always)
 GitCommit := $(shell git rev-parse HEAD)
 LDFLAGS := "-s -w -X awssh/cmd.Version=$(Version) -X awssh/cmd.GitCommit=$(GitCommit)"
+SOURCE_DIRS = cmd config internal main.go
 OUTDIR := bin
 
 GOLANGCI_VERSION = 1.31.0
@@ -16,7 +17,7 @@ tidy:
 	go mod tidy
 
 pretty:
-	gofmt -s -w **/*.go
+	gofmt -l -s -w $(SOURCE_DIRS)
 
 build:
 	CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o awssh
