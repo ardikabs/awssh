@@ -25,11 +25,11 @@ The `awssh` is extending the `aws ec2-instance-connect` command to be aware with
 
 ## Development Guide
 ### Prerequisites
-* Go 1.14 or later
+* Go 1.16 or later
 
 ### Setup
 * Install Git
-* Install Go 1.14 or later
+* Install Go 1.16 or later
 * Clone this repository
 
 ### Build and run binary file
