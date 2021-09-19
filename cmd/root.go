@@ -2,9 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 
@@ -57,25 +61,27 @@ func validateInstanceIDArgs(args []string) (err error) {
 func runSSHAccess(cmd *cobra.Command, args []string) {
 	logging.NewLogger(config.GetDebugMode())
 
-	err := validateInstanceIDArgs(args)
-
-	if err != nil {
+	if err := validateInstanceIDArgs(args); err != nil {
 		logging.ExitWithError(err)
 	}
 
-	var target *aws.EC2Instance
+	var target *aws.Instance
 
 	session := aws.NewSession(config.GetRegion())
+	ec2API := ec2.New(session)
+	ec2InstanceConnectAPI := ec2instanceconnect.New(session)
+
+	ec2Provider := aws.NewProvider(ec2API)
 
 	if len(args) > 0 {
-		instances, err := aws.GetInstanceWithID(session, args[0])
+		instances, err := ec2Provider.GetInstanceWithID(args[0])
 		if err != nil {
 			logging.ExitWithError(err)
 		}
 
 		target = instances[0]
 	} else {
-		instances, err := aws.GetInstanceWithTag(session, config.GetEC2Tags())
+		instances, err := ec2Provider.GetInstanceWithTag(config.GetEC2Tags())
 		if err != nil {
 			logging.ExitWithError(err)
 		}
@@ -86,13 +92,12 @@ func runSSHAccess(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	err = target.Connect(config.GetUsePublicIP())
-	if err != nil {
+	if err := target.Connect(ec2InstanceConnectAPI, defaultShellCommand(), config.GetUsePublicIP()); err != nil {
 		logging.ExitWithError(err)
 	}
 }
 
-func promptUI(instances []*aws.EC2Instance) (instance *aws.EC2Instance, err error) {
+func promptUI(instances []*aws.Instance) (instance *aws.Instance, err error) {
 	searcher := func(i string, index int) bool {
 		inst := instances[index]
 		name := inst.Name
@@ -122,4 +127,15 @@ func promptUI(instances []*aws.EC2Instance) (instance *aws.EC2Instance, err erro
 	}
 
 	return instances[i], nil
+}
+
+func defaultShellCommand() aws.ShellCommandFunc {
+	return func(name string, args ...string) *exec.Cmd {
+		cmd := exec.Command(name, args...)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		return cmd
+	}
 }

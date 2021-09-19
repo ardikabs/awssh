@@ -2,15 +2,14 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
+	"github.com/aws/aws-sdk-go/service/ec2instanceconnect/ec2instanceconnectiface"
 
 	"awssh/config"
 	"awssh/internal/logging"
@@ -18,9 +17,7 @@ import (
 )
 
 // EC2Instance represent all the necessary EC2 components
-type EC2Instance struct {
-	session *aws_session.Session
-
+type Instance struct {
 	Name             string
 	InstanceID       string
 	PrivateIP        string
@@ -28,9 +25,11 @@ type EC2Instance struct {
 	AvailabilityZone string
 }
 
+type ShellCommandFunc func(name string, args ...string) *exec.Cmd
+
 // NewEC2Instance creates a new EC2Instance from aws ec2 instance source
-func NewEC2Instance(session *aws_session.Session, instance *ec2.Instance) *EC2Instance {
-	ec2InstanceName := getTagValue("Name", instance)
+func NewInstance(instance *ec2.Instance) *Instance {
+	ec2InstanceName := GetTagValue("Name", instance)
 
 	if ec2InstanceName == "" {
 		ec2InstanceName = fmt.Sprintf("ec2:noname:%s", *instance.InstanceId)
@@ -44,8 +43,7 @@ func NewEC2Instance(session *aws_session.Session, instance *ec2.Instance) *EC2In
 		publicIPAddr = *instance.PublicIpAddress
 	}
 
-	return &EC2Instance{
-		session:          session,
+	return &Instance{
 		Name:             ec2InstanceName,
 		InstanceID:       *instance.InstanceId,
 		PrivateIP:        *instance.PrivateIpAddress,
@@ -56,8 +54,7 @@ func NewEC2Instance(session *aws_session.Session, instance *ec2.Instance) *EC2In
 
 // sendSSHPublicKey is an extend method to do ec2-instance-connect task
 // for sending SSH Public Key to the AWS API Server
-func (e *EC2Instance) sendSSHPublicKey(publicKey string) (err error) {
-	svc := ec2instanceconnect.New(e.session)
+func (e *Instance) sendSSHPublicKey(client ec2instanceconnectiface.EC2InstanceConnectAPI, publicKey string) (err error) {
 	input := &ec2instanceconnect.SendSSHPublicKeyInput{
 		InstanceId:       aws.String(e.InstanceID),
 		SSHPublicKey:     aws.String(publicKey),
@@ -67,8 +64,7 @@ func (e *EC2Instance) sendSSHPublicKey(publicKey string) (err error) {
 
 	logging.Logger().Debugf("Sending SSH Public Key for EC2 instance '%s' (%s)", e.Name, e.InstanceID)
 
-	_, err = svc.SendSSHPublicKey(input)
-	if err != nil {
+	if _, err := client.SendSSHPublicKey(input); err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case ec2instanceconnect.ErrCodeAuthException:
@@ -97,27 +93,25 @@ func (e *EC2Instance) sendSSHPublicKey(publicKey string) (err error) {
 
 // Connect used to establish an ssh connection from the EC2Instance
 // following with the use of public ip
-func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
-	var ipAddr string
-
+func (e *Instance) Connect(client ec2instanceconnectiface.EC2InstanceConnectAPI, cmdFn ShellCommandFunc, usePublicIP bool) (err error) {
 	logging.Logger().Debugf("Select EC2 instance '%s' (%s)", e.Name, e.InstanceID)
 
-	sshSession, err := ssh.NewSession(e.InstanceID)
+	var ipAddr string
 
+	sshSession, err := ssh.NewSession(e.InstanceID)
 	if err != nil {
 		return
 	}
 
-	err = e.sendSSHPublicKey(sshSession.PublicKey)
-	if err != nil {
-		return
+	if err := e.sendSSHPublicKey(client, sshSession.PublicKey); err != nil {
+		return err
 	}
 
 	ipAddr = e.PrivateIP
 
 	if usePublicIP {
 		if e.PublicIP == "" {
-			return fmt.Errorf("Could not find public IP for EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
+			return fmt.Errorf("could not find public IP for EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
 		}
 
 		logging.Logger().Debugf("Use public IP to connect to the EC2 instance target '%s' (%s): %s", e.Name, e.InstanceID, e.PublicIP)
@@ -137,11 +131,6 @@ func (e *EC2Instance) Connect(usePublicIP bool) (err error) {
 	sshOpts := strings.Split(config.GetSSHOpts(), " ")
 	sshArgs = append(sshArgs, sshOpts...)
 
-	fmt.Printf("Running command: ssh %s\n", strings.Join(sshArgs[:], " "))
-	cmd := exec.Command("ssh", sshArgs...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
+	logging.Logger().Infof("Running command: ssh %s\n", strings.Join(sshArgs[:], " "))
+	return cmdFn("ssh", sshArgs...).Run()
 }
