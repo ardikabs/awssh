@@ -1,13 +1,20 @@
-package aws
+package aws_test
 
 import (
 	"fmt"
 	"testing"
 
+	. "awssh/internal/aws"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNewSession(t *testing.T) {
+	session := NewSession("ap-southeast-1")
+	assert.NotNil(t, session)
+}
 
 func TestPrepareEC2Filters(t *testing.T) {
 	type args struct {
@@ -77,15 +84,14 @@ func TestPrepareEC2Filters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			want, err := PrepareEC2Filters(tt.args.tags)
+			got, err := PrepareEC2Filters(tt.args.tags)
 			if tt.err != nil {
 				assert.NotNil(t, err)
 				return
 			}
 
 			assert.Nil(t, err)
-			assert.Equal(t, tt.expected, want)
-
+			assert.ElementsMatch(t, tt.expected, got)
 		})
 	}
 }

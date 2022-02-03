@@ -17,6 +17,10 @@ import (
 // or loaded from AWS shared-credentials located in ~/.aws/credentials
 // in particularly when you need to use AWS_PROFILE located in ~/.aws/config
 // you need to set AWS_SDK_LOAD_CONFIG=1
+//
+// Sidenote
+// session.Must(): the only way the session is failed if the shared config is malformed
+// ref: https://github.com/aws/aws-sdk-go/issues/928
 func NewSession(region string) *session.Session {
 	session := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(region),
