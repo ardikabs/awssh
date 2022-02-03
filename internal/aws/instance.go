@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect/ec2instanceconnectiface"
+	"golang.org/x/crypto/ssh/agent"
 
 	"awssh/config"
 	"awssh/internal/logging"
@@ -93,12 +94,12 @@ func (e *Instance) sendSSHPublicKey(client ec2instanceconnectiface.EC2InstanceCo
 
 // Connect used to establish an ssh connection from the EC2Instance
 // following with the use of public ip
-func (e *Instance) Connect(client ec2instanceconnectiface.EC2InstanceConnectAPI, cmdFn ShellCommandFunc, usePublicIP bool) (err error) {
-	logging.Logger().Debugf("Select EC2 instance '%s' (%s)", e.Name, e.InstanceID)
+func (e *Instance) Connect(sshAgent agent.ExtendedAgent, client ec2instanceconnectiface.EC2InstanceConnectAPI, cmdFn ShellCommandFunc, usePublicIP bool) (err error) {
+	logging.Logger().Debugf("awssh: select EC2 instance '%s' (%s)", e.Name, e.InstanceID)
 
 	var ipAddr string
 
-	sshSession, err := ssh.NewSession(e.InstanceID)
+	sshSession, err := ssh.NewSession(sshAgent, e.InstanceID)
 	if err != nil {
 		return
 	}
@@ -111,14 +112,14 @@ func (e *Instance) Connect(client ec2instanceconnectiface.EC2InstanceConnectAPI,
 
 	if usePublicIP {
 		if e.PublicIP == "" {
-			return fmt.Errorf("could not find public IP for EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
+			return fmt.Errorf("awssh: could not find public IP for EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
 		}
 
-		logging.Logger().Debugf("Use public IP to connect to the EC2 instance target '%s' (%s): %s", e.Name, e.InstanceID, e.PublicIP)
+		logging.Logger().Debugf("awssh: use public IP to connect to the EC2 instance target '%s' (%s): %s", e.Name, e.InstanceID, e.PublicIP)
 		ipAddr = e.PublicIP
 	}
 
-	logging.Logger().Debugf("Establish an SSH connection to the EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
+	logging.Logger().Debugf("awssh: establish an SSH connection to the EC2 instance target '%s' (%s)", e.Name, e.InstanceID)
 
 	sshArgs := []string{
 		"-l",
@@ -131,6 +132,6 @@ func (e *Instance) Connect(client ec2instanceconnectiface.EC2InstanceConnectAPI,
 	sshOpts := strings.Split(config.GetSSHOpts(), " ")
 	sshArgs = append(sshArgs, sshOpts...)
 
-	logging.Logger().Infof("Running command: ssh %s\n", strings.Join(sshArgs[:], " "))
+	logging.Logger().Infof("awssh: running command: ssh %s\n", strings.Join(sshArgs[:], " "))
 	return cmdFn("ssh", sshArgs...).Run()
 }

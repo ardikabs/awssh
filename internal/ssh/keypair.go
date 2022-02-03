@@ -19,12 +19,12 @@ func NewKeyPair(keysize int) (keypair *KeyPair, err error) {
 	rsaKey, err := rsa.GenerateKey(rand.Reader, keysize)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate RSA key: (%v)", err)
+		return nil, fmt.Errorf("awssh: failed to generate RSA key: (%v)", err)
 	}
 
 	publicKey, err := gossh.NewPublicKey(&rsaKey.PublicKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create ssh public key: (%v)", err)
+		return nil, fmt.Errorf("awssh: failed to create ssh public key: (%v)", err)
 	}
 
 	return &KeyPair{

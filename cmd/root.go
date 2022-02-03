@@ -15,6 +15,7 @@ import (
 	"awssh/config"
 	"awssh/internal/aws"
 	"awssh/internal/logging"
+	"awssh/internal/ssh"
 )
 
 // MakeRoot used to create a root command functionality
@@ -92,7 +93,12 @@ func runSSHAccess(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if err := target.Connect(ec2InstanceConnectAPI, defaultShellCommand(), config.GetUsePublicIP()); err != nil {
+	sshAgent, err := ssh.NewAgent()
+	if err != nil {
+		logging.ExitWithError(err)
+	}
+
+	if err := target.Connect(sshAgent, ec2InstanceConnectAPI, defaultShellCommand(), config.GetUsePublicIP()); err != nil {
 		logging.ExitWithError(err)
 	}
 }
