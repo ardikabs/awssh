@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect"
 	"github.com/aws/aws-sdk-go/service/ec2instanceconnect/ec2instanceconnectiface"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 type mockEC2InstanceConnectAPI struct {
@@ -28,6 +29,25 @@ func (m mockEC2InstanceConnectAPI) SendSSHPublicKey(input *ec2instanceconnect.Se
 	}
 
 	return nil, nil
+}
+
+type mockSSHAgent struct {
+	agent.ExtendedAgent
+}
+
+func (m mockSSHAgent) List() ([]*agent.Key, error) {
+	return []*agent.Key{}, nil
+}
+
+func (m mockSSHAgent) Add(key agent.AddedKey) error {
+	return nil
+}
+
+func TestMain(m *testing.M) {
+	config.Load()
+	logging.NewLogger(false)
+	code := m.Run()
+	os.Exit(code)
 }
 
 func TestShellProcessSuccess(t *testing.T) {
@@ -54,9 +74,6 @@ func fakeShellCommand() func(name string, args ...string) *exec.Cmd {
 }
 
 func TestConnect(t *testing.T) {
-	config.Load()
-	logging.NewLogger(false)
-
 	defaultInstance := &ec2.Instance{
 		InstanceId:       aws.String("i-1234567890"),
 		PrivateIpAddress: aws.String("10.10.5.100"),
@@ -72,13 +89,15 @@ func TestConnect(t *testing.T) {
 	}
 
 	instance := NewInstance(defaultInstance)
-	ec2ICAPI := mockEC2InstanceConnectAPI{
+	mockEC2InstanceConnectAPI := mockEC2InstanceConnectAPI{
 		expectedInput: &ec2instanceconnect.SendSSHPublicKeyInput{
 			InstanceId: aws.String("i-1234567890"),
 		},
 	}
 
 	shellCommand := fakeShellCommand()
-	err := instance.Connect(ec2ICAPI, shellCommand, false)
+
+	mockSSHAgent := mockSSHAgent{}
+	err := instance.Connect(mockSSHAgent, mockEC2InstanceConnectAPI, shellCommand, false)
 	assert.Nil(t, err)
 }

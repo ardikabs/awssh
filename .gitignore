@@ -12,3 +12,4 @@ config.json
 .idea
 application.yml
 *.html
+output/
