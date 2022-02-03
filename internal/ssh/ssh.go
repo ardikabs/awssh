@@ -20,18 +20,8 @@ type Session struct {
 // NewSession creates a new SSH session from instanceID
 // This method will determine to select whether need to create a new temporary ssh keypair
 // or used the first existing key given from ssh-agent
-func NewSession(instanceID string) (session *Session, err error) {
-	sshSocket := os.Getenv("SSH_AUTH_SOCK")
-	conn, err := net.Dial("unix", sshSocket)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to establish a connection to SSH_AUTH_SOCK: (%v)", err)
-	}
-
-	agentClient := agent.NewClient(conn)
-
-	existKeys, err := agentClient.List()
-
+func NewSession(sshAgent agent.ExtendedAgent, instanceID string) (session *Session, err error) {
+	existKeys, err := sshAgent.List()
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +41,9 @@ func NewSession(instanceID string) (session *Session, err error) {
 			ConfirmBeforeUse: false,
 		}
 
-		err = agentClient.Add(tmpSSHKeyPair)
+		err = sshAgent.Add(tmpSSHKeyPair)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to add ssh keypair to ssh agent: (%v)", err)
+			return nil, fmt.Errorf("awssh: unable to add ssh keypair to ssh agent: (%v)", err)
 		}
 
 		logging.Logger().Debugf("Create temporary ssh-rsa keypair (%s)", gossh.FingerprintSHA256(keypair.PublicKey))
@@ -67,4 +57,17 @@ func NewSession(instanceID string) (session *Session, err error) {
 	return &Session{
 		PublicKey: publicKey,
 	}, nil
+}
+
+// NewAgent will initiate connection to ssh socket to initiate
+// ssh agent connection
+func NewAgent() (agent.ExtendedAgent, error) {
+	sshSocket := os.Getenv("SSH_AUTH_SOCK")
+	conn, err := net.Dial("unix", sshSocket)
+
+	if err != nil {
+		return nil, fmt.Errorf("awssh: failed to establish a connection to SSH_AUTH_SOCK: (%v)", err)
+	}
+
+	return agent.NewClient(conn), nil
 }

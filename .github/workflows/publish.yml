@@ -1,9 +1,9 @@
 name: Publish
 
 on:
-  create:
+  push:
     tags:
-    - v*
+      - 'v*'
 
 jobs:
   publish:
@@ -35,7 +35,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
 
       - name: Make dist
-        run: make dist
+        run: make build/dist
 
       - name: Upload release binaries
         uses: alexellis/upload-assets@0.2.2
