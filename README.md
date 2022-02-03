@@ -1,6 +1,6 @@
 # awssh
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/ardikabs/awssh/CI?style=flat-square)](https://github.com/ardikabs/awssh/actions?query=workflow%3ACI)
-![Go Version](https://img.shields.io/badge/go%20version-%3E=1.14-61CFDD.svg?style=flat-square)
+![Go Version](https://img.shields.io/badge/go%20version-%3E=1.16-61CFDD.svg?style=flat-square)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ardikabs/awssh?style=flat-square)](https://goreportcard.com/report/github.com/ardikabs/awssh)
 ## Description
 `awssh` is a simple CLI providing an ssh access to EC2 utilizing an [EC2 Instance Connect](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect.html) feature.<br>
